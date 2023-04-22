@@ -6,6 +6,12 @@ import random
 from setup import bot, logger
 from webhook import app
 
+import telebot
+from telebot import types # для указание типов
+import config
+
+bot = telebot.TeleBot(config.token)
+
 # --------------- dialog params -------------------
 dialog = {
     'hello': {
