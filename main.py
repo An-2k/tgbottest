@@ -1,42 +1,57 @@
-import telebot
-from telebot import types # для указание типов
-import config
+#  Copyright (c) ChernV (@otter18), 2021.
 
-bot = telebot.TeleBot(config.token)
+import os
+import random
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("👋 Поздороваться")
-    btn2 = types.KeyboardButton("❓ Задать вопрос")
-    markup.add(btn1, btn2)
-    bot.send_message(message.chat.id, text="Привет, {0.first_name}! Я тестовый бот для твоей статьи для habr.com".format(message.from_user), reply_markup=markup)
-    
-@bot.message_handler(content_types=['text'])
-def func(message):
-    if(message.text == "👋 Поздороваться"):
-        bot.send_message(message.chat.id, text="Привеет.. Спасибо что читаешь статью!)")
-    elif(message.text == "❓ Задать вопрос"):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = types.KeyboardButton("Как меня зовут?")
-        btn2 = types.KeyboardButton("Что я могу?")
-        back = types.KeyboardButton("Вернуться в главное меню")
-        markup.add(btn1, btn2, back)
-        bot.send_message(message.chat.id, text="Задай мне вопрос", reply_markup=markup)
-    
-    elif(message.text == "Как меня зовут?"):
-        bot.send_message(message.chat.id, "У меня нет имени..")
-    
-    elif message.text == "Что я могу?":
-        bot.send_message(message.chat.id, text="Поздороваться с читателями")
-    
-    elif (message.text == "Вернуться в главное меню"):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        button1 = types.KeyboardButton("👋 Поздороваться")
-        button2 = types.KeyboardButton("❓ Задать вопрос")
-        markup.add(button1, button2)
-        bot.send_message(message.chat.id, text="Вы вернулись в главное меню", reply_markup=markup)
+from setup import bot, logger
+from webhook import app
+
+# --------------- dialog params -------------------
+dialog = {
+    'hello': {
+        'in': ['привет', 'hello', 'hi', 'privet', 'hey'],
+        'out': ['Приветствую', 'Здравствуйте', 'Привет!']
+    },
+    'how r u': {
+        'in': ['как дела', 'как ты', 'how are you', 'дела', 'how is it going'],
+        'out': ['Хорошо', 'Отлично', 'Good. And how are u?']
+    },
+    'name': {
+        'in': ['зовут', 'name', 'имя'],
+        'out': [
+            'Я telegram-template-bot',
+            'Я бот шаблон, но ты можешь звать меня в свой проект',
+            'Это секрет. Используй команду /help, чтобы узнать'
+        ]
+    }
+}
+
+
+# --------------- bot -------------------
+@bot.message_handler(commands=['help', 'start'])
+def say_welcome(message):
+    logger.info(f'</code>@{message.from_user.username}<code> ({message.chat.id}) used /start or /help')
+    bot.send_message(
+        message.chat.id,
+        '<b>Привет это тестовый бот для продажи вторички в Алании</b>',
+        parse_mode='html'
+    )
+
+
+@bot.message_handler(func=lambda message: True)
+def echo(message):
+    for t, resp in dialog.items():
+        if sum([e in message.text.lower() for e in resp['in']]):
+            logger.info(f'</code>@{message.from_user.username}<code> ({message.chat.id}) used {t}:\n\n%s', message.text)
+            bot.send_message(message.chat.id, random.choice(resp['out']))
+            return
+
+    logger.info(f'</code>@{message.from_user.username}<code> ({message.chat.id}) used echo:\n\n%s', message.text)
+    bot.send_message(message.chat.id, message.text)
+
+
+if __name__ == '__main__':
+    if os.environ.get("IS_PRODUCTION", "False") == "True":
+        app.run()
     else:
-        bot.send_message(message.chat.id, text="На такую комманду я не запрограммировал..")
-
-bot.polling(none_stop=True)
+        bot.infinity_polling()
