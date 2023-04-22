@@ -37,15 +37,6 @@ def say_welcome(message):
         parse_mode='html'
     )
 
-@bot.message_handler(commands=["start"])
-def start(m, res=False):
-        # Добавляем две кнопки
-        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
-        item1=types.KeyboardButton("Факт")
-        item2=types.KeyboardButton("Поговорка")
-        markup.add(item1)
-        markup.add(item2)
-        bot.send_message(m.chat.id, 'Нажми: \nФакт для получения интересного факта\nПоговорка — для получения мудрой цитаты ',  reply_markup=markup)
 
     
     
