@@ -37,14 +37,14 @@ def say_welcome(message):
         parse_mode='html'
     )
 
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("👋 Поздороваться")
+    btn2 = types.KeyboardButton("❓ Задать вопрос")
+    markup.add(btn1, btn2)
+    bot.send_message(message.chat.id, text="Привет, {0.first_name}! Я тестовый бот для твоей статьи для habr.com".format(message.from_user), reply_markup=markup)
 
-@bot.message_handler(func=lambda message: True)
-def echo(message):
-    for t, resp in dialog.items():
-        if sum([e in message.text.lower() for e in resp['in']]):
-            logger.info(f'</code>@{message.from_user.username}<code> ({message.chat.id}) used {t}:\n\n%s', message.text)
-            bot.send_message(message.chat.id, random.choice(resp['out']))
-            return
 
     logger.info(f'</code>@{message.from_user.username}<code> ({message.chat.id}) used echo:\n\n%s', message.text)
     bot.send_message(message.chat.id, message.text)
